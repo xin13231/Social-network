@@ -1,0 +1,82 @@
+import java.util.*;
+import java.io.*;
+
+public class Analysis {
+    public static void main(String[] args) {
+        // 检查是否提供了文件路径参数
+        if (args.length != 1) {
+            System.out.println("Usage: java Analysis <path-to-file>");
+            return;
+        }
+        
+        String filePath = args[0];
+        Map<String, Set<String>> graph = new HashMap<>();
+        Map<String, Integer> followersCount = new HashMap<>();
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\s+");
+                if (parts.length <= 1) {
+                    // 即使没有关注任何人，也应将该人添加到图中
+                    graph.putIfAbsent(parts[0], new HashSet<>());
+                    followersCount.putIfAbsent(parts[0], 0);
+                    continue; // 跳过没有关注者的行
+                }
+
+                String source = parts[0];
+                graph.putIfAbsent(source, new HashSet<>());
+                followersCount.putIfAbsent(source, 0);
+                for (int i = 1; i < parts.length; i++) {
+                    String target = parts[i];
+                    // 更新图
+                    graph.get(source).add(target);
+                    // 确保每个被关注者也存在于图中
+                    graph.putIfAbsent(target, new HashSet<>());
+                    // 计算每个人的关注者数量
+                    followersCount.putIfAbsent(target, 0);
+                    followersCount.put(target, followersCount.get(target) + 1);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found: " + filePath);
+            return;
+        } catch (IOException e) {
+            System.out.println("An I/O error occurred: " + e.getMessage());
+            return;
+        }
+
+        // 计算节点数量 V 和边数量 E
+        int V = graph.size();
+        int E = graph.values().stream().mapToInt(Set::size).sum();
+        double density = V > 1 ? E / (double) (V * (V - 1)) : 0;
+        System.out.println("Density of the graph is: " + density);
+
+        // 找出拥有最多关注者的人
+        int maxFollowers = followersCount.values().stream().max(Integer::compare).orElse(0);
+        String mostFollowedPerson = followersCount.entrySet().stream()
+            .filter(entry -> entry.getValue() == maxFollowers)
+            .min(Map.Entry.comparingByKey())
+            .map(Map.Entry::getKey)
+            .orElse("No data");
+        System.out.println("Person with the most followers: " + mostFollowedPerson);
+
+        // 找出关注最多人的人
+        Optional<String> mostFollowingPerson = graph.entrySet().stream()
+            .max(Comparator.comparingInt(entry -> entry.getValue().size()))
+            .map(Map.Entry::getKey);
+        
+        if (mostFollowingPerson.isPresent()) {
+            // 如果存在多个具有最多关注数的人，按字母顺序选择第一个
+            String person = graph.entrySet().stream()
+                .filter(e -> e.getValue().size() == graph.get(mostFollowingPerson.get()).size())
+                .map(Map.Entry::getKey)
+                .sorted()
+                .findFirst()
+                .orElse("No data");
+            System.out.println("Person following the most people: " + person);
+        } else {
+            System.out.println("Person following the most people: No data");
+        }
+    }
+}
