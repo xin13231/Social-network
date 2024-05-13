@@ -1,0 +1,17 @@
+public class Analysis {
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.err.println("Usage: java Analysis <inputFile>");
+            System.exit(1);
+        }
+
+        String inputFile = args[0];
+
+        try {
+            List<String> lines = readFile(inputFile);
+            Map<String, Set<String>> followingTree = getFollowingTree(lines);
+            Map<String, Set<String>> followerTree = getFollowerTree(lines);
+
+     }
+    }
+  }
