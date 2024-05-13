@@ -1,0 +1,17 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
+
+
+
+public class Main {
+    public static void main(String[] args) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            System.out.println("请输入一些文本：");
+            String input = reader.readLine();
+            System.out.println("你输入的文本是：" + input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
