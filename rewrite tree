@@ -15,3 +15,31 @@ public class Analysis {
      }
     }
   }
+
+
+    private static Map<String, Set<String>> getFollowingTree(List<String> lines) {
+        Map<String, Set<String>> followingTree = new HashMap<>();
+        for (String line : lines) {
+            String[] parts = line.split(" ");
+            String person = parts[0];
+            Set<String> follows = new HashSet<>(Arrays.asList(parts).subList(1, parts.length));
+            followingTree.put(person, follows);
+        }
+        return followingTree;
+    }
+
+
+private static Map<String, Set<String>> getFollowerTree(List<String> lines){
+        Map<String, Set<String>> followerTree = new HashMap<>();
+        for (String line : lines) {
+            String[] parts = line.split(" ");
+            String person = parts[0];
+            Set<String> follows = new HashSet<>(Arrays.asList(parts).subList(1, parts.length));
+            for (String follow : follows) {
+                Set<String> set = followerTree.getOrDefault(follow, new HashSet<>());
+                set.add(person);
+                followerTree.put(follow, set);
+            }
+        }
+        return followerTree;
+    }
