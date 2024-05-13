@@ -1,0 +1,12 @@
+private static String findPersonWithMostFollowersOrFollowing(Map<String, Set<String>> socialNetwork) {
+        int maxFollowers = 0;
+        String personWithMostFollowers = "";
+        for (Map.Entry<String, Set<String>> entry : socialNetwork.entrySet()) {
+            int numFollowers = entry.getValue().size();
+            if (numFollowers > maxFollowers || (numFollowers == maxFollowers && entry.getKey().compareTo(personWithMostFollowers) < 0)) {
+                maxFollowers = numFollowers;
+                personWithMostFollowers = entry.getKey();
+            }
+        }
+        return personWithMostFollowers;
+    }
