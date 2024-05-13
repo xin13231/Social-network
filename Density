@@ -1,0 +1,8 @@
+ private static double calculateDensity(Map<String, Set<String>> socialNetwork) {
+        int numVertices = socialNetwork.size();
+        int numEdges = 0;
+        for (Set<String> followers : socialNetwork.values()) {
+            numEdges += followers.size();
+        }
+        return (double) numEdges / (numVertices * (numVertices - 1));
+    }
