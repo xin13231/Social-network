@@ -1,0 +1,13 @@
+    private static int calculateNumPeopleTwoDegreesAway(Map<String, Set<String>> socialNetwork, String firstPerson) {
+        Set<String> firstPersonFollowers = socialNetwork.get(firstPerson);
+        Set<String> secondDegreePeople = new HashSet<>();
+        for (String follower : firstPersonFollowers) {
+            Set<String> followersOfFollower = socialNetwork.get(follower);
+            for (String secondDegreePerson : followersOfFollower) {
+                if (!firstPerson.equals(secondDegreePerson) && !firstPersonFollowers.contains(secondDegreePerson)) {
+                    secondDegreePeople.add(secondDegreePerson);
+                }
+            }
+        }
+        return secondDegreePeople.size();
+    }
