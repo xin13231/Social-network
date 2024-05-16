@@ -1,0 +1,15 @@
+ private static double calculateMedianFollowers(Map<String, Set<String>> socialNetwork) {
+        List<Integer> numFollowersList = new ArrayList<>();
+        for (Set<String> followers : socialNetwork.values()) {
+            numFollowersList.add(followers.size());
+        }
+        Collections.sort(numFollowersList);
+        int size = numFollowersList.size();
+        if (size % 2 == 0) {
+            int midIndex1 = size / 2 - 1;
+            int midIndex2 = size / 2;
+            return (numFollowersList.get(midIndex1) + numFollowersList.get(midIndex2)) / 2.0;
+        } else {
+            return numFollowersList.get(size / 2);
+        }
+    }
