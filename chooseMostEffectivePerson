@@ -1,0 +1,35 @@
+    private static String chooseMostEffectivePerson(Map<String, Set<String>> socialNetwork) {
+        String mostEffectivePerson = "";
+        int max = Integer.MIN_VALUE;
+        for (String person : socialNetwork.keySet()) {
+            int count = bfs(socialNetwork, person);
+            if (count > max){
+                max = count;
+                mostEffectivePerson = person;
+            }else if (count == max && mostEffectivePerson.compareTo(person) > 0){
+                mostEffectivePerson = person;
+            }
+        }
+        return mostEffectivePerson;
+    }
+
+    private static int bfs(Map<String, Set<String>> socialNetwork, String person){
+        Deque<String> deque = new ArrayDeque<>();
+        deque.offer(person);
+        Set<String> visited = new HashSet<>();
+        visited.add(person);
+        int count = 1;
+        while (!deque.isEmpty()){
+            String poll = deque.poll();
+            Set<String> set = socialNetwork.getOrDefault(poll, new HashSet<>());
+            for (String next : set) {
+                if (visited.contains(next)){
+                    continue;
+                }
+                visited.add(next);
+                count++;
+                deque.offer(next);
+            }
+        }
+        return count;
+    }
