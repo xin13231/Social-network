@@ -1,0 +1,174 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+
+public class Analysis {
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.out.println("Usage: java Analysis <inputFile>");
+            System.exit(1);
+        }
+
+        String inputFile = args[0];
+
+        try {
+            List<String> lines = readFile(inputFile);
+            Map<String, Set<String>> followingTree = getFollowingTree(lines);
+            Map<String, Set<String>> followerTree = getFollowerTree(lines);
+
+            // Task 1: Calculate graph density
+            double density = calculateDensity(followingTree);
+            System.out.println("Task 1 " + density);
+
+            // Task 2: Find person with the most followers
+            String mostFollowers = findPersonWithMostFollowersOrFollowing(followerTree);
+            System.out.println("Task 2 " + mostFollowers);
+
+            // Task 3: Find person who follows the most people
+            String mostFollowing = findPersonWithMostFollowersOrFollowing(followingTree);
+            System.out.println("Task 3 " + mostFollowing);
+
+            // Task 4: Calculate number of people two degrees away from the first person in the input
+            int numTwoDegreesAway = calculateNumPeopleTwoDegreesAway(followerTree, lines.get(0).split(" ")[0]);
+            System.out.println("Task 4 " + numTwoDegreesAway);
+
+            // Task 5: Calculate median number of followers
+            double medianFollowers = calculateMedianFollowers(followerTree);
+            System.out.println("Task 5 " + medianFollowers);
+
+            // Task 6: Choose the most effective person for message propagation
+            String mostEffectivePerson = chooseMostEffectivePerson(followerTree);
+            System.out.println("Task 6 " + mostEffectivePerson);
+
+
+        } catch (IOException e) {
+            System.err.println("Error reading input file: " + e.getMessage());
+        }
+    }
+
+    private static List<String> readFile(String inputFile) throws IOException {
+        List<String> lines = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            lines.add(line);
+        }
+        reader.close();
+        return lines;
+    }
+
+    private static Map<String, Set<String>> getFollowingTree(List<String> lines) {
+        Map<String, Set<String>> followingTree = new HashMap<>();
+        for (String line : lines) {
+            String[] parts = line.split(" ");
+            String person = parts[0];
+            Set<String> follows = new HashSet<>(Arrays.asList(parts).subList(1, parts.length));
+            followingTree.put(person, follows);
+        }
+        return followingTree;
+    }
+
+    private static Map<String, Set<String>> getFollowerTree(List<String> lines){
+        Map<String, Set<String>> followerTree = new HashMap<>();
+        for (String line : lines) {
+            String[] parts = line.split(" ");
+            String person = parts[0];
+            Set<String> follows = new HashSet<>(Arrays.asList(parts).subList(1, parts.length));
+            for (String follow : follows) {
+                Set<String> set = followerTree.getOrDefault(follow, new HashSet<>());
+                set.add(person);
+                followerTree.put(follow, set);
+            }
+        }
+        return followerTree;
+    }
+
+    private static double calculateDensity(Map<String, Set<String>> socialNetwork) {
+        int numVertices = socialNetwork.size();
+        int numEdges = 0;
+        for (Set<String> followers : socialNetwork.values()) {
+            numEdges += followers.size();
+        }
+        return (double) numEdges / (numVertices * (numVertices - 1));
+    }
+
+    private static String findPersonWithMostFollowersOrFollowing(Map<String, Set<String>> socialNetwork) {
+        int maxFollowers = 0;
+        String personWithMostFollowers = "";
+        for (Map.Entry<String, Set<String>> entry : socialNetwork.entrySet()) {
+            int numFollowers = entry.getValue().size();
+            if (numFollowers > maxFollowers || (numFollowers == maxFollowers && entry.getKey().compareTo(personWithMostFollowers) < 0)) {
+                maxFollowers = numFollowers;
+                personWithMostFollowers = entry.getKey();
+            }
+        }
+        return personWithMostFollowers;
+    }
+
+    private static int calculateNumPeopleTwoDegreesAway(Map<String, Set<String>> socialNetwork, String firstPerson) {
+        Set<String> firstPersonFollowers = socialNetwork.get(firstPerson);
+        Set<String> secondDegreePeople = new HashSet<>();
+        for (String follower : firstPersonFollowers) {
+            Set<String> followersOfFollower = socialNetwork.get(follower);
+            for (String secondDegreePerson : followersOfFollower) {
+                if (!firstPerson.equals(secondDegreePerson) && !firstPersonFollowers.contains(secondDegreePerson)) {
+                    secondDegreePeople.add(secondDegreePerson);
+                }
+            }
+        }
+        return secondDegreePeople.size();
+    }
+
+    private static double calculateMedianFollowers(Map<String, Set<String>> socialNetwork) {
+        List<Integer> numFollowersList = new ArrayList<>();
+        for (Set<String> followers : socialNetwork.values()) {
+            numFollowersList.add(followers.size());
+        }
+        Collections.sort(numFollowersList);
+        int size = numFollowersList.size();
+        if (size % 2 == 0) {
+            int midIndex1 = size / 2 - 1;
+            int midIndex2 = size / 2;
+            return (numFollowersList.get(midIndex1) + numFollowersList.get(midIndex2)) / 2.0;
+        } else {
+            return numFollowersList.get(size / 2);
+        }
+    }
+
+    private static String chooseMostEffectivePerson(Map<String, Set<String>> socialNetwork) {
+        String mostEffectivePerson = "";
+        int max = Integer.MIN_VALUE;
+        for (String person : socialNetwork.keySet()) {
+            int count = bfs(socialNetwork, person);
+            if (count > max){
+                max = count;
+                mostEffectivePerson = person;
+            }else if (count == max && mostEffectivePerson.compareTo(person) > 0){
+                mostEffectivePerson = person;
+            }
+        }
+        return mostEffectivePerson;
+    }
+
+    private static int bfs(Map<String, Set<String>> socialNetwork, String person){
+        Deque<String> deque = new ArrayDeque<>();
+        deque.offer(person);
+        Set<String> visited = new HashSet<>();
+        visited.add(person);
+        int count = 1;
+        while (!deque.isEmpty()){
+            String poll = deque.poll();
+            Set<String> set = socialNetwork.getOrDefault(poll, new HashSet<>());
+            for (String next : set) {
+                if (visited.contains(next)){
+                    continue;
+                }
+                visited.add(next);
+                count++;
+                deque.offer(next);
+            }
+        }
+        return count;
+    }
+}
